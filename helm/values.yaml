@@ -1,0 +1,28 @@
+frontend:
+  image:
+    repository: oszombati/ocr-hw-frontend
+    APP_VERSION: latest
+  port: 3000
+  replicas: 1
+
+backend:
+  image:
+    repository: oszombati/ocr-hw-backend
+    APP_VERSION: latest
+  port: 3001
+  replicas: 1
+
+# ocrService:
+#   image:
+#     repository: <DOCKER_USERNAME>/ocr-hw-ocr
+#     APP_VERSION: latest
+#   port: 5000
+#   replicas: 1
+
+# rabbitmq:
+#   image:
+#     repository: rabbitmq
+#     APP_VERSION: 3-management
+#   port: 5672
+#   managementPort: 15672
+#   replicas: 1
