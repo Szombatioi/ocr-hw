@@ -1,0 +1,92 @@
+name: Test, build and release
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_KEY: ${{ secrets.DOCKER_KEY }}
+  IMAGE_NAME: ocr-hw
+
+jobs:
+  unit-test:
+    name: Unit test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./app/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd ./app
+          npm ci
+
+      - name: Run unit tests
+        run: |
+          cd ./app
+          npm run test
+
+  lint-test:
+    name: Lint test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./app/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd ./app
+          npm ci
+
+      - name: Run ESLint
+        run: |
+          cd ./app
+          npm run lint
+
+  build-and-push:
+    needs: [unit-test, lint-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_KEY }}
+
+      - name: Build and push Docker image
+        run: |
+          cd ./app
+          docker build -t ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+          docker push ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Update values.yaml
+        run: |
+          cd ./helm
+          sed -i 's|APP_VERSION:.*|APP_VERSION: '${{ github.sha }}'|' values.yaml
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add values.yaml
+          git commit -m "Update values.yaml"
+          git push
