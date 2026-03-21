@@ -29,12 +29,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd ./backend
+          cd ./ocr_backend
           npm ci
 
       - name: Run unit tests
         run: |
-          cd ./backend
+          cd ./ocr_backend
           npm run test
 
   lint-test:
@@ -51,12 +51,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd ./backend
+          cd ./ocr_backend
           npm ci
 
       - name: Run ESLint
         run: |
-          cd ./backend
+          cd ./ocr_backend
           npm run lint
 
   build-and-push:
@@ -74,13 +74,13 @@ jobs:
 
       - name: Build and push frontend image
         run: |
-          cd ./frontend
+          cd ./ocr_frontend
           docker build -t ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE }}:${{ github.sha }} .
           docker push ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
 
       - name: Build and push backend image
         run: |
-          cd ./backend
+          cd ./ocr_backend
           docker build -t ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }} .
           docker push ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
 
