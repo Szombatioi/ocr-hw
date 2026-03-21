@@ -15,7 +15,8 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL=http://ocr-hw-backend:3001
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-RUN npm run build
+# With testing the output
+RUN npm run build && ls -la dist/
 
 #  Stage 3: Runner 
 FROM node:20-alpine AS runner
