@@ -11,7 +11,8 @@ permissions:
 env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_KEY: ${{ secrets.DOCKER_KEY }}
-  IMAGE_NAME: ocr-hw
+  FRONTEND_IMAGE: ocr-hw-frontend
+  BACKEND_IMAGE: ocr-hw-backend
 
 jobs:
   unit-test:
@@ -26,16 +27,16 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: ./app/package-lock.json
+          cache-dependency-path: ./backend/package-lock.json
 
       - name: Install dependencies
         run: |
-          cd ./app
+          cd ./backend
           npm ci
 
       - name: Run unit tests
         run: |
-          cd ./app
+          cd ./backend
           npm run test
 
   lint-test:
@@ -50,16 +51,16 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: ./app/package-lock.json
+          cache-dependency-path: ./backend/package-lock.json
 
       - name: Install dependencies
         run: |
-          cd ./app
+          cd ./backend
           npm ci
 
       - name: Run ESLint
         run: |
-          cd ./app
+          cd ./backend
           npm run lint
 
   build-and-push:
@@ -75,18 +76,25 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_KEY }}
 
-      - name: Build and push Docker image
+      - name: Build and push frontend image
         run: |
-          cd ./app
-          docker build -t ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
-          docker push ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cd ./frontend
+          docker build -t ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE }}:${{ github.sha }} .
+          docker push ${{ env.DOCKER_USERNAME }}/${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
+
+      - name: Build and push backend image
+        run: |
+          cd ./backend
+          docker build -t ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }} .
+          docker push ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
 
       - name: Update values.yaml
         run: |
           cd ./helm
-          sed -i 's|APP_VERSION:.*|APP_VERSION: '${{ github.sha }}'|' values.yaml
+          sed -i '/ocr-hw-frontend/{n;s|APP_VERSION:.*|APP_VERSION: ${{ github.sha }}|}' values.yaml
+          sed -i '/ocr-hw-backend/{n;s|APP_VERSION:.*|APP_VERSION: ${{ github.sha }}|}' values.yaml
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
           git add values.yaml
-          git commit -m "Update values.yaml"
+          git commit -m "Update image versions to ${{ github.sha }}"
           git push
