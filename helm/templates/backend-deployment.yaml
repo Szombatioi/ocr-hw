@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocr-hw-backend
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: ocr-hw-backend
+  template:
+    metadata:
+      labels:
+        app: ocr-hw-backend
+    spec:
+      containers:
+        - name: ocr-hw-backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.APP_VERSION }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.port }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "{{ .Values.backend.port }}"
+            - name: RABBITMQ_URL
+              value: "amqp://ocr-hw-rabbitmq:{{ .Values.rabbitmq.port }}"
+            - name: OCR_SERVICE_URL
+              value: "http://ocr-hw-ocr:{{ .Values.ocrService.port }}"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.backend.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.backend.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
