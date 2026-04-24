@@ -1,10 +1,10 @@
-import { Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Client } from 'minio';
 import * as path from 'path';
 import * as stream from 'stream';
 
 @Injectable()
-export class S3StorageService {//implements OnModuleInit {
+export class S3StorageService {
   public readonly bucket = 'images';
   private readonly minioClient: Client;
 
@@ -15,7 +15,7 @@ export class S3StorageService {//implements OnModuleInit {
       useSSL: process.env.S3_USE_SSL === 'true' || false,
       accessKey: process.env.S3_ACCESS_KEY || 'minioadmin',
       secretKey: process.env.S3_SECRET_KEY || 'minioadmin',
-      region: 'auto'
+      region: 'auto',
     });
   }
 
@@ -51,14 +51,14 @@ export class S3StorageService {//implements OnModuleInit {
     }
   }
 
-
   //Download any kind of object
   async downloadObject(objectName: string): Promise<stream.Readable> {
     try {
       //Fetching object - throws error if not found
-      const stat = await this.minioClient.statObject(this.bucket, objectName);
+      // const stat = await this.minioClient.statObject(this.bucket, objectName);
       return await this.minioClient.getObject(this.bucket, objectName);
     } catch (err) {
+      console.error('downloadObject error:', err);
       throw new InternalServerErrorException('Failed to download file');
     }
   }
@@ -70,6 +70,7 @@ export class S3StorageService {//implements OnModuleInit {
       const sanitizedObjectName = path.basename(objectName);
       await this.minioClient.removeObject(this.bucket, sanitizedObjectName);
     } catch (err) {
+      console.error(err);
       throw new InternalServerErrorException('Failed to delete file');
     }
   }

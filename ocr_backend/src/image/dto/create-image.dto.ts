@@ -1,4 +1,4 @@
 export class CreateImageDto {
-    description?: string;
-    createdAt?: Date;
+  description?: string;
+  createdAt?: Date;
 }

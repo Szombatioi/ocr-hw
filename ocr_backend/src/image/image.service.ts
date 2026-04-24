@@ -9,23 +9,30 @@ import { ImageEntity } from './entities/image.entity';
 export class ImageService {
   constructor(
     @Inject() private readonly s3StorageService: S3StorageService,
-    @InjectRepository(ImageEntity) private readonly imageRepository: Repository<ImageEntity>,
+    @InjectRepository(ImageEntity)
+    private readonly imageRepository: Repository<ImageEntity>,
   ) {}
   async findAll(): Promise<ImageEntity[]> {
     return this.imageRepository.find();
   }
 
-  async updateOcrResult(url: string, ocrResult: Record<string, any>): Promise<void> {
+  async updateOcrResult(
+    url: string,
+    ocrResult: Record<string, any>,
+  ): Promise<void> {
     await this.imageRepository.update({ url }, { ocrResult });
   }
 
-  async createImage(file: Express.Multer.File, dto: CreateImageDto): Promise<string> {
+  async createImage(
+    file: Express.Multer.File,
+    dto: CreateImageDto,
+  ): Promise<string> {
     //Upload to the object-storage
     const result = await this.s3StorageService.uploadObject(file);
 
     //Save to the database
     await this.imageRepository.save(
-      await this.imageRepository.create({
+      this.imageRepository.create({
         url: result.url,
         name: file.originalname,
         description: dto.description,
@@ -33,7 +40,7 @@ export class ImageService {
       }),
     );
 
-    //Return the URL - the OCR coordinates are not stored for now, 
+    //Return the URL - the OCR coordinates are not stored for now,
     //the client side will call the service
     return result.url;
   }

@@ -7,7 +7,9 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.ENABLED_ORIGINS || 'http://localhost:3000',
   });
-  console.log(`CORS enabled for origins: ${process.env.ENABLED_ORIGINS || 'http://localhost:3000'}`);
+  console.log(
+    `CORS enabled for origins: ${process.env.ENABLED_ORIGINS || 'http://localhost:3000'}`,
+  );
 
   await app.listen(process.env.PORT ?? 3001);
 }
