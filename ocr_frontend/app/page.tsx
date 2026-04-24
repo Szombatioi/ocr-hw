@@ -1,103 +1,101 @@
-//TODO: 
+//TODO:
 //Add error messages below inputs that are invisible by default
 //Add isLoading state while loading the upldoad and OCR results
 "use client";
-import { Alert, Button, Container, FilledInput, IconButton, Paper, TextField, Typography } from "@mui/material";
+import { Button, CircularProgress, Container, Paper, TextField, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
-import { Clear } from "@mui/icons-material";
 import ImageUploader from "./components/file-upload";
 import api from "./axios";
-import { OcrResult } from "@/types/ocr-result";
 import { Image } from "@/types/image";
+import { runOcr } from "@/app/lib/ocr-api";
 import ImageCard from "./components/image-card";
+import ImageDialog from "./components/image-dialog";
 
 export default function OcrPage() {
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isRunningOcr, setIsRunningOcr] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>("");
   const [images, setImages] = useState<Image[]>([]);
+  const [selectedImage, setSelectedImage] = useState<Image | null>(null);
 
   useEffect(() => {
-    api.get<Image[]>("/image").then((res) => setImages(res.data));
+    api.get<Image[]>("/image").then((res) => setImages(res.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())));
   }, []);
 
   async function processImage() {
-    if (!apiKey || !selectedFile) {
-      setApiKeyError("Please provide an API key and select an image first.");
-      return;
-    }
+    if (!selectedFile) return;
+    setIsLoading(true);
+
+    const createdAt = new Date().toISOString();
 
     //Upload to the backend, get the image's URL
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("description", description);
+    formData.append("createdAt", createdAt);
     const response = await api.post<string>("/image", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      headers: { "Content-Type": "multipart/form-data" },
     });
-    setImages((prev) => [...prev, { url: response.data, name: selectedFile.name, description }]);
 
-    //Call the OCR to get the text, then display with rectangles
+    const newImage: Image = { url: response.data, name: selectedFile.name, description, createdAt, ocrResult: null };
+    setImages((prev) => [newImage, ...prev]);
+    setSelectedImage(newImage); // Open dialog immediately
+    setIsLoading(false);
+
+    // Run OCR — set isRunningOcr so the dialog's auto-trigger doesn't double-fire
+    setIsRunningOcr(true);
     try {
-      const ocrResponse = await api.get("/api/ocr", {
-        baseURL: "",
-        params: {
-          apikey: apiKey,
-          url: response.data,
-          isOverlayRequired: true,
-        },
-      });
-      const ocrResult: OcrResult = ocrResponse.data;
-      console.log(ocrResult);
-    } catch (error: any) {
-      if (error.response) {
-        setApiKeyError(`OCR API error: ${error.response.data}`);
-      } else {
-        setApiKeyError(`Network error: ${error.message}`);
-      }
+      const ocrResult = await runOcr(response.data);
+      await api.patch("/image", { url: response.data, ocrResult });
+      setImages((prev) => prev.map((img) => img.url === response.data ? { ...img, ocrResult } : img));
+      setSelectedImage((prev) => prev?.url === response.data ? { ...prev, ocrResult } : prev);
+    } catch {
+      // OCR failure is non-fatal; the image is still saved
+    } finally {
+      setIsRunningOcr(false);
     }
+  }
 
-    //Display the image in a dialog
+  async function handleDialogRunOcr() {
+    if (!selectedImage) return;
+    setIsRunningOcr(true);
+    try {
+      const ocrResult = await runOcr(selectedImage.url);
+      await api.patch("/image", { url: selectedImage.url, ocrResult });
+      setImages((prev) => prev.map((img) => img.url === selectedImage.url ? { ...img, ocrResult } : img));
+      setSelectedImage((prev) => prev ? { ...prev, ocrResult } : prev);
+    } finally {
+      setIsRunningOcr(false);
+    }
   }
 
   return (
     <>
       <Container maxWidth="md" sx={{ mt: 4 }}>
         <Paper elevation={1} sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Typography variant="h6">OcrSpace API key:</Typography>
-          <div>
-            <FilledInput
-              // variant="filled"
-              fullWidth
-              placeholder="Enter your OcrSpace API key"
-              value={apiKey || ''}
-              type="password"
-              endAdornment={apiKey ? <IconButton onClick={() => setApiKey(null)}><Clear /></IconButton> : null}
-              onChange={(e) => setApiKey(e.target.value)}
-            />
-            {apiKeyError && <Typography variant="body2" color="error">{apiKeyError}</Typography>}
-          </div>
-          {!apiKey && <Alert severity="warning">You did not enter an OcrSpace API key yet.</Alert>}
-
           <Container sx={{ display: "flex", flexDirection: "column", gap: 2, justifyContent: "center", alignItems: "center" }}>
-            <ImageUploader onFileChange={setSelectedFile} />
-            {selectedFile && (
+            {isLoading ? (
+              <CircularProgress />
+            ) : (
               <>
-                <TextField
-                  variant="outlined"
-                  placeholder="Enter a description for the image (optional)"
-                  fullWidth
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  multiline
-                  rows={2}
-                />
-
-                <Button variant="contained" color="primary" onClick={() => { processImage() }}>
-                  Process Image
-                </Button>
+                <ImageUploader onFileChange={setSelectedFile} />
+                {selectedFile && (
+                  <>
+                    <TextField
+                      variant="outlined"
+                      placeholder="Enter a description for the image (optional)"
+                      fullWidth
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      multiline
+                      rows={2}
+                    />
+                    <Button variant="contained" color="primary" onClick={processImage}>
+                      Process Image
+                    </Button>
+                  </>
+                )}
               </>
             )}
           </Container>
@@ -111,20 +109,20 @@ export default function OcrPage() {
             <Typography align="center" variant="body2" color="text.secondary">No images uploaded yet.</Typography>
           ) : (
             images.map((image) => (
-              // <Paper key={image.url} variant="outlined" sx={{ p: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
-              //   <img src={image.url} alt={image.description || image.name} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }} />
-              //   <div>
-              //     <Typography variant="body1">{image.name || '—'}</Typography>
-              //     <Typography variant="body2" color="text.secondary">{image.description || 'No description'}</Typography>
-              //   </div>
-              // </Paper>
               <ImageCard key={image.url} name={image.name}
                 description={image.description} imageUrl={image.url}
-                onClick={() => alert(`Clicked on image: ${image.name}`)} />
+                onClick={() => setSelectedImage(image)} />
             ))
           )}
         </Paper>
       </Container>
+
+      <ImageDialog
+        image={selectedImage}
+        isRunningOcr={isRunningOcr}
+        onClose={() => setSelectedImage(null)}
+        onRunOcr={handleDialogRunOcr}
+      />
     </>
   );
 }

@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, UseInt
 import { ImageService } from './image.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './dto/create-image.dto';
+import { UpdateImageDto } from './dto/update-image.dto';
 
 @Controller('image')
 export class ImageController {
@@ -10,6 +11,11 @@ export class ImageController {
   @Get()
   findAll() {
     return this.imageService.findAll();
+  }
+
+  @Patch()
+  updateOcrResult(@Body() dto: UpdateImageDto) {
+    return this.imageService.updateOcrResult(dto.url, dto.ocrResult);
   }
 
   @Post()

@@ -15,6 +15,10 @@ export class ImageService {
     return this.imageRepository.find();
   }
 
+  async updateOcrResult(url: string, ocrResult: Record<string, any>): Promise<void> {
+    await this.imageRepository.update({ url }, { ocrResult });
+  }
+
   async createImage(file: Express.Multer.File, dto: CreateImageDto) {
     //Upload to the object-storage
     const result = await this.s3StorageService.uploadObject(file);
@@ -23,8 +27,9 @@ export class ImageService {
     await this.imageRepository.save(
       await this.imageRepository.create({
         url: result.url,
-        name: file.filename,
+        name: file.originalname,
         description: dto.description,
+        createdAt: dto.createdAt || new Date(),
       }),
     );
 
