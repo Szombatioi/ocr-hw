@@ -19,7 +19,7 @@ export class ImageService {
     await this.imageRepository.update({ url }, { ocrResult });
   }
 
-  async createImage(file: Express.Multer.File, dto: CreateImageDto) {
+  async createImage(file: Express.Multer.File, dto: CreateImageDto): Promise<string> {
     //Upload to the object-storage
     const result = await this.s3StorageService.uploadObject(file);
 
