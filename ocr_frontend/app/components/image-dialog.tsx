@@ -47,10 +47,9 @@ export default function ImageDialog({ image, isRunningOcr, onClose, onRunOcr }: 
     ctx.strokeStyle = "rgba(246, 72, 59, 0.85)";
     ctx.fillStyle = "rgba(59, 130, 246, 0.4)";
     ctx.lineWidth = 3;
-
     const padding = 4;
     
-
+    //Loop through OCRSpace results
     for (const parsed of ocrResult.ParsedResults ?? []) {
       for (const line of parsed.TextOverlay?.Lines ?? []) {
         for (const word of line.Words ?? []) {
@@ -65,7 +64,8 @@ export default function ImageDialog({ image, isRunningOcr, onClose, onRunOcr }: 
     }
   }, []);
 
-  // Auto-run OCR when dialog opens for an image without results
+  //Running OCR when dialog is opened
+  //but only if there is no cache for it yet :)
   useEffect(() => {
     if (image && !image.ocrResult && !isRunningOcr) {
       onRunOcr();
@@ -76,12 +76,9 @@ export default function ImageDialog({ image, isRunningOcr, onClose, onRunOcr }: 
   useEffect(() => {
     if (image?.ocrResult) {
       const img = imgRef.current;
-      // If the image is already loaded (e.g. cached), clientWidth may still be 0
-      // until the browser finishes layout — defer with rAF to be safe.
       if (img?.complete && img.naturalWidth > 0) {
         requestAnimationFrame(() => drawRects(image.ocrResult!));
       }
-      // If not yet loaded, onLoad will trigger drawRects
     } else {
       const canvas = canvasRef.current;
       if (canvas) {
@@ -92,7 +89,6 @@ export default function ImageDialog({ image, isRunningOcr, onClose, onRunOcr }: 
 
   function handleImageLoad() {
     if (image?.ocrResult) {
-      // rAF ensures clientWidth/clientHeight are available after browser layout
       requestAnimationFrame(() => drawRects(image.ocrResult!));
     }
   }

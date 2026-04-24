@@ -18,8 +18,8 @@ export default function ImageUploader({ onFileChange }: ImageUploaderProps) {
     const inputRef = useRef<HTMLInputElement>(null);
 
     function validate(f: File): string | null {
-        if (!f.type.startsWith("image/")) return "Csak képfájl tölthető fel.";
-        if (f.size > MAX_SIZE_BYTES) return `A fájl mérete meghaladja az ${MAX_SIZE_MB} MB-os korlátot.`;
+        if (!f.type.startsWith("image/")) return "Only images can be uploaded.";
+        if (f.size > MAX_SIZE_BYTES) return `File size exceeds ${MAX_SIZE_MB} MB.`;
         return null;
     }
 
@@ -107,7 +107,6 @@ export default function ImageUploader({ onFileChange }: ImageUploaderProps) {
                 </div>
             )}
 
-            {/* Hibaüzenet */}
             {error && <p className="uploader__error">{error}</p>}
 
             <input

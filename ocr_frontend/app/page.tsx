@@ -1,6 +1,3 @@
-//TODO:
-//Add error messages below inputs that are invisible by default
-//Add isLoading state while loading the upldoad and OCR results
 "use client";
 import { Button, CircularProgress, Container, Paper, TextField, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
@@ -38,12 +35,13 @@ export default function OcrPage() {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
+    //Add the image to the list + open dialog
     const newImage: Image = { url: response.data, name: selectedFile.name, description, createdAt, ocrResult: null };
     setImages((prev) => [newImage, ...prev]);
-    setSelectedImage(newImage); // Open dialog immediately
+    setSelectedImage(newImage);
     setIsLoading(false);
 
-    // Run OCR — set isRunningOcr so the dialog's auto-trigger doesn't double-fire
+    // Run OCR
     setIsRunningOcr(true);
     try {
       const ocrResult = await runOcr(response.data);
@@ -51,7 +49,7 @@ export default function OcrPage() {
       setImages((prev) => prev.map((img) => img.url === response.data ? { ...img, ocrResult } : img));
       setSelectedImage((prev) => prev?.url === response.data ? { ...prev, ocrResult } : prev);
     } catch {
-      // OCR failure is non-fatal; the image is still saved
+      //non-fatal error
     } finally {
       setIsRunningOcr(false);
     }
