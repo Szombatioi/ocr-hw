@@ -1,14 +1,14 @@
 frontend:
   image:
     repository: oszombati/ocr-hw-frontend
-    APP_VERSION: eb0809bb2f5ee23583680aa68791b48c63ecd8a9
+    APP_VERSION: 9cc24b4e9a13b25d33cf86fa71ab6f817c226b0e
   port: 3000
   replicas: 1
 
 backend:
   image:
     repository: oszombati/ocr-hw-backend
-    APP_VERSION: eb0809bb2f5ee23583680aa68791b48c63ecd8a9
+    APP_VERSION: 9cc24b4e9a13b25d33cf86fa71ab6f817c226b0e
   port: 3001
   replicas: 1
 
