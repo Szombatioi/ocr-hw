@@ -35,7 +35,7 @@ jobs:
       - name: Run unit tests
         run: |
           cd ./ocr_backend
-          npm run test --passWithNoTests
+          npm run test -- --passWithNoTests
 
   lint-test:
     name: Lint test
