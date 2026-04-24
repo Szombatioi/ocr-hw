@@ -7,9 +7,14 @@ import { CreateImageDto } from './dto/create-image.dto';
 export class ImageController {
   constructor(private readonly imageService: ImageService) { }
 
+  @Get()
+  findAll() {
+    return this.imageService.findAll();
+  }
+
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   uploadImage(@Body() createImageDto: CreateImageDto, @UploadedFile() file: Express.Multer.File) {
     return this.imageService.createImage(file, createImageDto);
   }
-  }
+}

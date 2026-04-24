@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as stream from 'stream';
 
 @Injectable()
-export class S3StorageService implements OnModuleInit {
+export class S3StorageService {//implements OnModuleInit {
   public readonly bucket = 'images';
   private readonly minioClient: Client;
 
@@ -12,18 +12,19 @@ export class S3StorageService implements OnModuleInit {
     this.minioClient = new Client({
       endPoint: process.env.S3_ENDPOINT || 'localhost',
       port: Number(process.env.S3_PORT) || 9000,
-      useSSL: false,
+      useSSL: process.env.S3_USE_SSL === 'true' || false,
       accessKey: process.env.S3_ACCESS_KEY || 'minioadmin',
       secretKey: process.env.S3_SECRET_KEY || 'minioadmin',
+      region: 'auto'
     });
   }
 
-  async onModuleInit() {
-    const exists = await this.minioClient.bucketExists(this.bucket).catch(() => false);
-    if (!exists) {
-      await this.minioClient.makeBucket(this.bucket);
-    }
-  }
+  // async onModuleInit() {
+  //   const exists = await this.minioClient.bucketExists(this.bucket).catch(() => false);
+  //   if (!exists) {
+  //     await this.minioClient.makeBucket(this.bucket);
+  //   }
+  // }
 
   async uploadObject(file: Express.Multer.File) {
     const objectName = `${Date.now()}-${path.basename(file.originalname)}`; //Creating unique object name
@@ -42,9 +43,10 @@ export class S3StorageService implements OnModuleInit {
 
       return {
         filename: objectName,
-        url: `${process.env.S3_PUBLIC_URL || 'http://localhost:9000'}/${this.bucket}/${objectName}`,
+        url: `${process.env.S3_PUBLIC_URL || `http://localhost:9000/${this.bucket}`}/${objectName}`,
       };
     } catch (err) {
+      console.error('uploadObject error:', err);
       throw new InternalServerErrorException('Failed to upload file');
     }
   }

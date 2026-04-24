@@ -6,5 +6,8 @@ export class ImageEntity {
     url!: string;
 
     @Column({ default: '' })
+    name!: string;
+    
+    @Column({ default: '' })
     description!: string;
 }

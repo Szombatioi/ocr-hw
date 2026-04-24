@@ -11,6 +11,10 @@ export class ImageService {
     @Inject() private readonly s3StorageService: S3StorageService,
     @InjectRepository(ImageEntity) private readonly imageRepository: Repository<ImageEntity>,
   ) {}
+  async findAll(): Promise<ImageEntity[]> {
+    return this.imageRepository.find();
+  }
+
   async createImage(file: Express.Multer.File, dto: CreateImageDto) {
     //Upload to the object-storage
     const result = await this.s3StorageService.uploadObject(file);
@@ -19,6 +23,7 @@ export class ImageService {
     await this.imageRepository.save(
       await this.imageRepository.create({
         url: result.url,
+        name: file.filename,
         description: dto.description,
       }),
     );

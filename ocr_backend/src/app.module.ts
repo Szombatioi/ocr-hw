@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config/dist/config.module';
 import { ConfigService } from '@nestjs/config/dist/config.service';
 import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 import { S3StorageModule } from './s3-storage/s3-storage.module';
+import { ImageModule } from './image/image.module';
 
 @Module({
   imports: [
@@ -26,6 +27,8 @@ import { S3StorageModule } from './s3-storage/s3-storage.module';
         synchronize: true,
       }),
     }),
+    ImageModule,
+    S3StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],
