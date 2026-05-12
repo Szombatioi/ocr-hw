@@ -1,7 +1,6 @@
 "use client";
 import {
   Alert,
-  CircularProgress,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -14,16 +13,14 @@ import { OcrResult } from "@/types/ocr-result";
 
 interface Props {
   image: Image | null;
-  isRunningOcr: boolean;
   onClose: () => void;
-  onRunOcr: () => void;
 }
 
 function hasText(ocrResult: OcrResult): boolean {
   return ocrResult.ParsedResults?.some((r) => r.ParsedText?.trim().length > 0) ?? false;
 }
 
-export default function ImageDialog({ image, isRunningOcr, onClose, onRunOcr }: Props) {
+export default function ImageDialog({ image, onClose }: Props) {
   const imgRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -63,14 +60,6 @@ export default function ImageDialog({ image, isRunningOcr, onClose, onRunOcr }: 
       }
     }
   }, []);
-
-  //Running OCR when dialog is opened
-  //but only if there is no cache for it yet :)
-  useEffect(() => {
-    if (image && !image.ocrResult && !isRunningOcr) {
-      onRunOcr();
-    }
-  }, [image?.url]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Redraw when image or ocrResult changes
   useEffect(() => {
@@ -122,11 +111,6 @@ export default function ImageDialog({ image, isRunningOcr, onClose, onRunOcr }: 
           />
         </div>
 
-        {isRunningOcr && (
-          <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center" }}>
-            <CircularProgress size={18} />
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   );

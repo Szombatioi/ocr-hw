@@ -1,30 +1,49 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, OnModuleInit } from '@nestjs/common';
 import { Client } from 'minio';
 import * as path from 'path';
 import * as stream from 'stream';
 
 @Injectable()
-export class S3StorageService {
+export class S3StorageService implements OnModuleInit {
   public readonly bucket = 'images';
   private readonly minioClient: Client;
 
   constructor() {
+    const port = process.env.S3_PORT ? Number(process.env.S3_PORT) : undefined;
+    const useSSL = process.env.S3_USE_SSL === 'true';
+
     this.minioClient = new Client({
       endPoint: process.env.S3_ENDPOINT || 'localhost',
-      port: Number(process.env.S3_PORT) || 9000,
-      useSSL: process.env.S3_USE_SSL === 'true' || false,
+      // omit port for default SSL (443) — including it breaks SigV4 with R2/S3
+      ...((port && !(useSSL && port === 443)) ? { port } : {}),
+      useSSL,
       accessKey: process.env.S3_ACCESS_KEY || 'minioadmin',
       secretKey: process.env.S3_SECRET_KEY || 'minioadmin',
       region: 'auto',
     });
   }
 
-  // async onModuleInit() {
-  //   const exists = await this.minioClient.bucketExists(this.bucket).catch(() => false);
-  //   if (!exists) {
-  //     await this.minioClient.makeBucket(this.bucket);
-  //   }
-  // }
+  async onModuleInit() {
+    // const exists = await this.minioClient.bucketExists(this.bucket).catch(() => false);
+    // if (!exists) {
+    //   await this.minioClient.makeBucket(this.bucket);
+    // }
+
+    // await this.minioClient.setBucketPolicy(
+    //   this.bucket,
+    //   JSON.stringify({
+    //     Version: '2012-10-17',
+    //     Statement: [
+    //       {
+    //         Effect: 'Allow',
+    //         Principal: { AWS: ['*'] },
+    //         Action: ['s3:GetObject'],
+    //         Resource: [`arn:aws:s3:::${this.bucket}/*`],
+    //       },
+    //     ],
+    //   }),
+    // );
+  }
 
   async uploadObject(file: Express.Multer.File) {
     const objectName = `${Date.now()}-${path.basename(file.originalname)}`; //Creating unique object name
