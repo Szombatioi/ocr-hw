@@ -16,8 +16,12 @@ export default function OcrPage() {
   const [images, setImages] = useState<Image[]>([]);
   const [selectedImage, setSelectedImage] = useState<Image | null>(null);
 
+  const [errorText, setErrorText] = useState<string | null>(null);
+
   useEffect(() => {
-    api.get<Image[]>("/image").then((res) => setImages(res.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())));
+    api.get<Image[]>("/image")
+      .then((res) => setImages(res.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())))
+      .catch((err) => setErrorText("Error connecting to the backend: " + err));
   }, []);
 
   async function processImage() {
@@ -66,6 +70,16 @@ export default function OcrPage() {
     } finally {
       setIsRunningOcr(false);
     }
+  }
+
+  if(errorText !== null){
+    return (
+      <>
+        <Container sx={{ display: "flex", justifyContent: "center" }}>
+          <Typography variant="h6" color="error">{errorText}</Typography>
+        </Container>
+      </>
+    );
   }
 
   return (
