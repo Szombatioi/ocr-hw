@@ -1,4 +1,13 @@
 "use client";
+
+// import { io } from 'socket.io-client';
+
+// const socket = io('http://localhost:3002', { transports: ['websocket'] });
+
+// socket.on('image.processed', (data) => {
+//   console.log('OCR kész:', data);
+// });
+
 import { Button, CircularProgress, Container, Paper, TextField, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
 import ImageUploader from "./components/file-upload";

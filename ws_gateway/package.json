@@ -1,5 +1,5 @@
 {
-  "name": "ocr_backend",
+  "name": "ws_gateway",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -21,18 +21,13 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
-    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
-    "@nestjs/mapped-types": "*",
-    "@nestjs/microservices": "^11.1.20",
     "@nestjs/platform-express": "^11.0.1",
-    "@nestjs/typeorm": "^11.0.1",
-    "kafkajs": "^2.2.4",
-    "minio": "^8.0.7",
-    "pg": "^8.20.0",
+    "@nestjs/platform-socket.io": "^11.1.20",
+    "@nestjs/websockets": "^11.1.20",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "typeorm": "^0.3.28"
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -42,7 +37,6 @@
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
-    "@types/multer": "^2.1.0",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
