@@ -1,5 +1,5 @@
 "use client";
-
+import { io } from "socket.io-client";
 // import { io } from 'socket.io-client';
 
 // const socket = io('http://localhost:3002', { transports: ['websocket'] });
@@ -10,6 +10,7 @@
 
 import { Button, CircularProgress, Container, Paper, TextField, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import ImageUploader from "./components/file-upload";
 import api from "./axios";
 import { Image } from "@/types/image";
@@ -24,6 +25,36 @@ export default function OcrPage() {
   const [description, setDescription] = useState<string>("");
   const [images, setImages] = useState<Image[]>([]);
   const [selectedImage, setSelectedImage] = useState<Image | null>(null);
+  const [rendered, setRendered] = useState<string[]>([]);
+
+  // const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3002', {
+  //   transports: ['websocket'],
+  // });
+
+  // socket.on('image.processed', (data) => console.log(data)); //TODO: add image to list if not present yet
+
+  useEffect(() => {
+    const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3002', {
+      transports: ['websocket'],
+    });
+
+    socket.on('image.processed', (img: Image) => {
+      // setImages((prev) => {
+      //   const exists = prev.some((i) => i.url === img.url);
+      //   return exists
+      //     ? prev.map((i) => (i.url === img.url ? img : i))
+      //     : [img, ...prev];
+      // });
+      setImages((prev) => [img, ...prev]);
+      console.log(`New image: ${img}`);
+      // setSelectedImage((prev) => (prev?.url === img.url ? img : prev));
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
 
   const [errorText, setErrorText] = useState<string | null>(null);
 
@@ -50,22 +81,24 @@ export default function OcrPage() {
 
     //Add the image to the list + open dialog
     const newImage: Image = { url: response.data, name: selectedFile.name, description, createdAt, ocrResult: null };
-    setImages((prev) => [newImage, ...prev]);
-    setSelectedImage(newImage);
+    // setImages((prev) => [newImage, ...prev]);
+    // setSelectedImage(newImage);
+    setSelectedFile(null);
+    setDescription("");
     setIsLoading(false);
 
     // Run OCR
-    setIsRunningOcr(true);
-    try {
-      const ocrResult = await runOcr(response.data);
-      await api.patch("/image", { url: response.data, ocrResult });
-      setImages((prev) => prev.map((img) => img.url === response.data ? { ...img, ocrResult } : img));
-      setSelectedImage((prev) => prev?.url === response.data ? { ...prev, ocrResult } : prev);
-    } catch {
-      //non-fatal error
-    } finally {
-      setIsRunningOcr(false);
-    }
+    // setIsRunningOcr(true);
+    // try {
+    //   const ocrResult = await runOcr(response.data);
+    //   await api.patch("/image", { url: response.data, ocrResult });
+    //   setImages((prev) => prev.map((img) => img.url === response.data ? { ...img, ocrResult } : img));
+    //   setSelectedImage((prev) => prev?.url === response.data ? { ...prev, ocrResult } : prev);
+    // } catch {
+    //   //non-fatal error
+    // } finally {
+    //   setIsRunningOcr(false);
+    // }
   }
 
   async function handleDialogRunOcr() {
@@ -81,7 +114,7 @@ export default function OcrPage() {
     }
   }
 
-  if(errorText !== null){
+  if (errorText !== null) {
     return (
       <>
         <Container sx={{ display: "flex", justifyContent: "center" }}>
@@ -129,11 +162,26 @@ export default function OcrPage() {
           {images.length === 0 ? (
             <Typography align="center" variant="body2" color="text.secondary">No images uploaded yet.</Typography>
           ) : (
-            images.map((image) => (
-              <ImageCard key={image.url} name={image.name}
-                description={image.description} imageUrl={image.url}
-                onClick={() => setSelectedImage(image)} />
-            ))
+            images.map((image) => {
+              const isNew = !rendered.includes(image.url);
+              return (
+                <motion.div
+                  key={image.url}
+                  initial={isNew ? { y: -40, opacity: 0 } : false}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  onAnimationComplete={() => {
+                    if (isNew) {
+                      setRendered((prev) => [...prev, image.url]);
+                    }
+                  }}
+                >
+                  <ImageCard name={image.name}
+                    description={image.description} imageUrl={image.url}
+                    onClick={() => setSelectedImage(image)} />
+                </motion.div>
+              );
+            })
           )}
         </Paper>
       </Container>

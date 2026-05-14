@@ -10,21 +10,22 @@ import { Server, Socket } from 'socket.io';
 @Injectable()
 @WebSocketGateway({ cors: { origin: '*' } })
 export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  private readonly logger = new Logger(AppGateway.name);
 
   @WebSocketServer()
   server!: Server;
 
   handleConnection(client: Socket) {
-    //TODO
+    // Socket.io handles it automatically
+    console.log(`Client connected: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    //TODO
+    // Socket.io handles it automatically
+    console.log(`Client disconnected: ${client.id}`);
   }
 
+
   broadcast(event: string, payload: unknown) {
-    // this.server.emit(event, payload);
-    //TODO
+    this.server.emit(event, payload);
   }
 }

@@ -1,3 +1,4 @@
+import 'dotenv/config'; 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Transport } from '@nestjs/microservices/enums/transport.enum';

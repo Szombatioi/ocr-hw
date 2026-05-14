@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Logger, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { AppGateway } from './app.gateway';
 
@@ -9,11 +9,13 @@ interface NotifyDto {
 
 @Controller()
 export class AppController {
+  private readonly logger = new Logger(AppController.name);
   constructor(private readonly gateway: AppGateway) { }
 
   @Post()
   @HttpCode(200)
   notify(@Body() dto: NotifyDto) {
+    this.logger.log(`Received notify request: event=${dto.event}, payload=${JSON.stringify(dto.payload)}`);
     this.gateway.broadcast(dto.event, dto.payload); //TODO
   }
 }

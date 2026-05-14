@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { Transport } from '@nestjs/microservices/enums/transport.enum';
 import { ClientsModule } from '@nestjs/microservices/module/clients.module';
 
@@ -20,6 +19,6 @@ import { ClientsModule } from '@nestjs/microservices/module/clients.module';
     ]),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [],
 })
 export class AppModule {}
