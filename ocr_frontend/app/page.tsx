@@ -17,8 +17,11 @@ import { Image } from "@/types/image";
 import { runOcr } from "@/app/lib/ocr-api";
 import ImageCard from "./components/image-card";
 import ImageDialog from "./components/image-dialog";
+import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
+import { useRouter } from "next/navigation";
 
 export default function OcrPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isRunningOcr, setIsRunningOcr] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -33,6 +36,11 @@ export default function OcrPage() {
 
   // socket.on('image.processed', (data) => console.log(data)); //TODO: add image to list if not present yet
 
+  const _setSelectedFile = (file: File | null) => {
+    setSelectedFile(file);
+    setDescription("");
+  };
+
   useEffect(() => {
     const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3002', {
       transports: ['websocket'],
@@ -45,10 +53,11 @@ export default function OcrPage() {
       //     ? prev.map((i) => (i.url === img.url ? img : i))
       //     : [img, ...prev];
       // });
-      setImages((prev) => [img, ...prev]);
+      setImages((prev) => [img, ...prev].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
       console.log(`New image: ${img}`);
       // setSelectedImage((prev) => (prev?.url === img.url ? img : prev));
     });
+
 
     return () => {
       socket.disconnect();
@@ -83,8 +92,7 @@ export default function OcrPage() {
     const newImage: Image = { url: response.data, name: selectedFile.name, description, createdAt, ocrResult: null };
     // setImages((prev) => [newImage, ...prev]);
     // setSelectedImage(newImage);
-    setSelectedFile(null);
-    setDescription("");
+    _setSelectedFile(null);
     setIsLoading(false);
 
     // Run OCR
@@ -101,18 +109,18 @@ export default function OcrPage() {
     // }
   }
 
-  async function handleDialogRunOcr() {
-    if (!selectedImage) return;
-    setIsRunningOcr(true);
-    try {
-      const ocrResult = await runOcr(selectedImage.url);
-      await api.patch("/image", { url: selectedImage.url, ocrResult });
-      setImages((prev) => prev.map((img) => img.url === selectedImage.url ? { ...img, ocrResult } : img));
-      setSelectedImage((prev) => prev ? { ...prev, ocrResult } : prev);
-    } finally {
-      setIsRunningOcr(false);
-    }
-  }
+  // async function handleDialogRunOcr() {
+  //   if (!selectedImage) return;
+  //   setIsRunningOcr(true);
+  //   try {
+  //     const ocrResult = await runOcr(selectedImage.url);
+  //     await api.patch("/image", { url: selectedImage.url, ocrResult });
+  //     setImages((prev) => prev.map((img) => img.url === selectedImage.url ? { ...img, ocrResult } : img));
+  //     setSelectedImage((prev) => prev ? { ...prev, ocrResult } : prev);
+  //   } finally {
+  //     setIsRunningOcr(false);
+  //   }
+  // }
 
   if (errorText !== null) {
     return (
@@ -127,13 +135,16 @@ export default function OcrPage() {
   return (
     <>
       <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Button sx={{position: "absolute", top: 16, right: 16}} variant="outlined" onClick={() => router.push("/subscribe")}>
+          Get notifications
+        </Button>
         <Paper elevation={1} sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Container sx={{ display: "flex", flexDirection: "column", gap: 2, justifyContent: "center", alignItems: "center" }}>
             {isLoading ? (
               <CircularProgress />
             ) : (
               <>
-                <ImageUploader onFileChange={setSelectedFile} />
+                <ImageUploader onFileChange={_setSelectedFile} />
                 {selectedFile && (
                   <>
                     <TextField
@@ -162,11 +173,11 @@ export default function OcrPage() {
           {images.length === 0 ? (
             <Typography align="center" variant="body2" color="text.secondary">No images uploaded yet.</Typography>
           ) : (
-            images.map((image) => {
+            images.map((image, index) => {
               const isNew = !rendered.includes(image.url);
               return (
                 <motion.div
-                  key={image.url}
+                  key={index + image.url}
                   initial={isNew ? { y: -40, opacity: 0 } : false}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
@@ -190,7 +201,7 @@ export default function OcrPage() {
         image={selectedImage}
         isRunningOcr={isRunningOcr}
         onClose={() => setSelectedImage(null)}
-        onRunOcr={handleDialogRunOcr}
+        // onRunOcr={handleDialogRunOcr}
       />
     </>
   );

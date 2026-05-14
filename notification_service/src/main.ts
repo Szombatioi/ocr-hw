@@ -1,9 +1,12 @@
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+  const app = await NestFactory.create(AppModule);
+
+  app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.KAFKA,
     options: {
       client: {
@@ -13,6 +16,12 @@ async function bootstrap() {
       consumer: { groupId: 'notification-handler-group' },
     },
   });
-  await app.listen();
+
+  app.enableCors(
+    [process.env.ENABLED_CORS_ORIGINS?.split(',') || 'http://localhost:3000']
+  );
+
+  await app.startAllMicroservices();
+  await app.listen(process.env.PORT || 3003);
 }
 bootstrap();

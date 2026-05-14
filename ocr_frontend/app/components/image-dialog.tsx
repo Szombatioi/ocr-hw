@@ -16,14 +16,14 @@ interface Props {
   image: Image | null;
   isRunningOcr: boolean;
   onClose: () => void;
-  onRunOcr: () => void;
+  // onRunOcr: () => void;
 }
 
 function hasText(ocrResult: OcrResult): boolean {
   return ocrResult.ParsedResults?.some((r) => r.ParsedText?.trim().length > 0) ?? false;
 }
 
-export default function ImageDialog({ image, isRunningOcr, onClose, onRunOcr }: Props) {
+export default function ImageDialog({ image, isRunningOcr, onClose }: Props) {
   const imgRef = useRef<HTMLImageElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -68,7 +68,7 @@ export default function ImageDialog({ image, isRunningOcr, onClose, onRunOcr }: 
   //but only if there is no cache for it yet :)
   useEffect(() => {
     if (image && !image.ocrResult && !isRunningOcr) {
-      onRunOcr();
+      // onRunOcr();
     }
   }, [image?.url]); // eslint-disable-line react-hooks/exhaustive-deps
 

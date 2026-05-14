@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CreateImageDto } from './dto/create-image.dto';
-import { S3StorageService } from 'src/s3-storage/s3-storage.service';
+import { S3StorageService } from '../s3-storage/s3-storage.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ImageEntity } from './entities/image.entity';
@@ -52,7 +52,8 @@ export class ImageService {
       }),
     );
 
-    this.kafka.emit('image.uploaded', {imageUrl: saved.url});
+    //We send an ImageEntity type to the Kafka topic
+    this.kafka.emit('image.uploaded', saved);
     this.logger.log("Kafka message emitted for image upload: " + saved.url);
 
     //Return the URL - the OCR coordinates are not stored for now,

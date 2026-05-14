@@ -7,9 +7,9 @@ import { MicroserviceOptions } from '@nestjs/microservices/interfaces/microservi
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: process.env.ENABLED_ORIGINS || 'http://localhost:3000',
-  });
+  app.enableCors(
+    [process.env.ENABLED_ORIGINS?.split(',') || 'http://localhost:3000']
+  );
   // console.log(
   //   `CORS enabled for origins: ${process.env.ENABLED_ORIGINS || 'http://localhost:3000'}`,
   // );
