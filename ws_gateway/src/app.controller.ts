@@ -18,4 +18,9 @@ export class AppController {
     this.logger.log(`Received notify request: event=${dto.event}, payload=${JSON.stringify(dto.payload)}`);
     this.gateway.broadcast(dto.event, dto.payload); //TODO
   }
+
+  @Get('health')
+  health() {
+    return { status: 'ok' };
+  }
 }

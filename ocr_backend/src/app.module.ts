@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 import { S3StorageModule } from './s3-storage/s3-storage.module';
 import { ImageModule } from './image/image.module';
 import { OcrModule } from './ocr/ocr.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -32,9 +33,7 @@ import { OcrModule } from './ocr/ocr.module';
     S3StorageModule,
     OcrModule,
   ],
-  controllers: [
-    /*AppController*/
-  ],
+  controllers: [AppController],
   providers: [
     /*AppService*/
   ],

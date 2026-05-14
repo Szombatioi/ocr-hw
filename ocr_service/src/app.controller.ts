@@ -18,6 +18,11 @@ export class AppController {
     @Inject('KAFKA_PRODUCER') private readonly kafka: ClientKafka,
   ) {}
 
+  @Get('health')
+  health() {
+    return { status: 'ok' };
+  }
+
   @EventPattern('image.uploaded')
   async handleImageUploaded(@Payload() message: ImageType) {
     this.logger.log("Handling image uploaded event: " + message.url);

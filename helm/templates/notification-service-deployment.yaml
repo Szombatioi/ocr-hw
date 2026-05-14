@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocr-hw-notification-service
+spec:
+  replicas: {{ .Values.notificationService.replicas }}
+  selector:
+    matchLabels:
+      app: ocr-hw-notification-service
+  template:
+    metadata:
+      labels:
+        app: ocr-hw-notification-service
+    spec:
+      containers:
+        - name: ocr-hw-notification-service
+          image: "{{ .Values.notificationService.image.repository }}:{{ .Values.notificationService.image.APP_VERSION }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.notificationService.port }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "{{ .Values.notificationService.port }}"
+            - name: KAFKA_BROKER
+              value: "{{ .Values.infra.kafkaBroker }}"
+            - name: DATABASE_HOST
+              value: "{{ .Values.infra.database.host }}"
+            - name: DATABASE_PORT
+              value: "{{ .Values.infra.database.port }}"
+            - name: DATABASE_USER
+              value: "{{ .Values.infra.database.user }}"
+            - name: DATABASE_PASS
+              value: "{{ .Values.infra.database.password }}"
+            - name: DATABASE_NAME
+              value: "{{ .Values.infra.database.name }}"
+            - name: GMAIL_USER
+              value: "{{ .Values.notificationConfig.gmailUser }}"
+            - name: GMAIL_APP_PASSWORD
+              value: "{{ .Values.notificationConfig.gmailAppPassword }}"
+            - name: BACKEND_URL
+              value: "http://ocr-hw-backend:{{ .Values.backend.port }}"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.notificationService.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.notificationService.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6

@@ -9,6 +9,11 @@ import type { ImageType } from './types/image';
 export class AppController {
   constructor(private readonly subscriberService: SubscriberService) { }
 
+  @Get('health')
+  health() {
+    return { status: 'ok' };
+  }
+
   @EventPattern('image.processed')
   handleImageProcessed(@Payload() message: ImageType) {
     this.subscriberService.notifySubscribers(message);

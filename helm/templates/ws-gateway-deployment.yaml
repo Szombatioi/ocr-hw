@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocr-hw-ws-gateway
+spec:
+  replicas: {{ .Values.wsGateway.replicas }}
+  selector:
+    matchLabels:
+      app: ocr-hw-ws-gateway
+  template:
+    metadata:
+      labels:
+        app: ocr-hw-ws-gateway
+    spec:
+      containers:
+        - name: ocr-hw-ws-gateway
+          image: "{{ .Values.wsGateway.image.repository }}:{{ .Values.wsGateway.image.APP_VERSION }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.wsGateway.port }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "{{ .Values.wsGateway.port }}"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.wsGateway.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.wsGateway.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
