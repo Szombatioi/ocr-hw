@@ -12,10 +12,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ARG NEXT_PUBLIC_API_URL=http://ocr-hw-backend:3001
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-
-ARG NEXT_PUBLIC_WS_URL=http://ocr-hw-ws-gateway:3002
+ARG NEXT_PUBLIC_WS_URL=http://localhost:3002
 ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
 
 RUN npm run build

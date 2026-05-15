@@ -58,18 +58,6 @@ services:
       # echo "=== Topics ==="
       # /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
-    restart: unless-stopped
-    ports:
-      - "8090:8080"
-    depends_on:
-      - kafka
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-
   postgres:
     image: postgres:16-alpine
     container_name: postgres
