@@ -12,17 +12,52 @@ backend:
   port: 3001
   replicas: 1
 
-# ocrService:
-#   image:
-#     repository: <DOCKER_USERNAME>/ocr-hw-ocr
-#     APP_VERSION: latest
-#   port: 5000
-#   replicas: 1
+wsGateway:
+  image:
+    repository: oszombati/ocr-hw-ws-gateway
+    APP_VERSION: latest
+  port: 3002
+  replicas: 1
 
-# rabbitmq:
-#   image:
-#     repository: rabbitmq
-#     APP_VERSION: 3-management
-#   port: 5672
-#   managementPort: 15672
-#   replicas: 1
+notificationService:
+  image:
+    repository: oszombati/ocr-hw-notification-service
+    APP_VERSION: latest
+  port: 3003
+  replicas: 1
+
+ocrService:
+  image:
+    repository: oszombati/ocr-hw-ocr-service
+    APP_VERSION: latest
+  port: 3004
+  replicas: 1
+
+# Shared infra
+infra:
+  kafkaBroker: host.docker.internal:9094
+  database:
+    host: host.docker.internal
+    port: 5432
+    user: ocr
+    password: ocr
+    name: ocr_dev
+
+# Backend-specific secrets / config
+backendConfig:
+  s3:
+    protocol: https
+    publicUrl: https://pub-1fbf676bee684cd8b20a59de8fd3c080.r2.dev
+    endpoint: 1e8575481cde66c7bf3ee027101c79a4.r2.cloudflarestorage.com
+    port: "443"
+    bucket: images
+    useSsl: "true"
+    accessKey: fed28ad868f9ef3b6594bb1706691743
+    secretKey: 6b76b3cb7ad461d2c3d5beb5e9613586b0e447a6a814011166e6f7101d097fdc
+  enabledOrigins: http://localhost:3000
+  ocrApiKey: K82742783588957
+
+# Notification service config
+notificationConfig:
+  gmailUser: o.szombati@gmail.com
+  gmailAppPassword: "zpcg ltar sulo tott"

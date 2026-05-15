@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocr-hw-ocr-service
+spec:
+  replicas: {{ .Values.ocrService.replicas }}
+  selector:
+    matchLabels:
+      app: ocr-hw-ocr-service
+  template:
+    metadata:
+      labels:
+        app: ocr-hw-ocr-service
+    spec:
+      containers:
+        - name: ocr-hw-ocr-service
+          image: "{{ .Values.ocrService.image.repository }}:{{ .Values.ocrService.image.APP_VERSION }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.ocrService.port }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "{{ .Values.ocrService.port }}"
+            - name: KAFKA_BROKER
+              value: "{{ .Values.infra.kafkaBroker }}"
+            - name: OCR_API_KEY
+              value: "{{ .Values.backendConfig.ocrApiKey }}"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.ocrService.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.ocrService.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6

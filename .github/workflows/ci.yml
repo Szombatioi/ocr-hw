@@ -13,11 +13,17 @@ env:
   DOCKER_KEY: ${{ secrets.DOCKER_KEY }}
   FRONTEND_IMAGE: ocr-hw-frontend
   BACKEND_IMAGE: ocr-hw-backend
+  WS_GATEWAY_IMAGE: ocr-hw-ws-gateway
+  OCR_SERVICE_IMAGE: ocr-hw-ocr-service
+  NOTIFICATION_SERVICE_IMAGE: ocr-hw-notification-service
 
 jobs:
   unit-test:
     name: Unit test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [ocr_backend, ws_gateway, ocr_service, notification_service]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -29,17 +35,20 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd ./ocr_backend
+          cd ./${{ matrix.service }}
           npm ci
 
       - name: Run unit tests
         run: |
-          cd ./ocr_backend
+          cd ./${{ matrix.service }}
           npm run test -- --passWithNoTests
 
   lint-test:
     name: Lint test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [ocr_backend, ws_gateway, ocr_service, notification_service]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -51,12 +60,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd ./ocr_backend
+          cd ./${{ matrix.service }}
           npm ci
 
       - name: Run ESLint
         run: |
-          cd ./ocr_backend
+          cd ./${{ matrix.service }}
           npm run lint
 
   build-and-push:
@@ -84,11 +93,32 @@ jobs:
           docker build -t ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }} .
           docker push ${{ env.DOCKER_USERNAME }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
 
+      - name: Build and push ws-gateway image
+        run: |
+          cd ./ws_gateway
+          docker build -t ${{ env.DOCKER_USERNAME }}/${{ env.WS_GATEWAY_IMAGE }}:${{ github.sha }} .
+          docker push ${{ env.DOCKER_USERNAME }}/${{ env.WS_GATEWAY_IMAGE }}:${{ github.sha }}
+
+      - name: Build and push ocr-service image
+        run: |
+          cd ./ocr_service
+          docker build -t ${{ env.DOCKER_USERNAME }}/${{ env.OCR_SERVICE_IMAGE }}:${{ github.sha }} .
+          docker push ${{ env.DOCKER_USERNAME }}/${{ env.OCR_SERVICE_IMAGE }}:${{ github.sha }}
+
+      - name: Build and push notification-service image
+        run: |
+          cd ./notification_service
+          docker build -t ${{ env.DOCKER_USERNAME }}/${{ env.NOTIFICATION_SERVICE_IMAGE }}:${{ github.sha }} .
+          docker push ${{ env.DOCKER_USERNAME }}/${{ env.NOTIFICATION_SERVICE_IMAGE }}:${{ github.sha }}
+
       - name: Update values.yaml
         run: |
           cd ./helm
           sed -i '/ocr-hw-frontend/{n;s|APP_VERSION:.*|APP_VERSION: ${{ github.sha }}|}' values.yaml
           sed -i '/ocr-hw-backend/{n;s|APP_VERSION:.*|APP_VERSION: ${{ github.sha }}|}' values.yaml
+          sed -i '/ocr-hw-ws-gateway/{n;s|APP_VERSION:.*|APP_VERSION: ${{ github.sha }}|}' values.yaml
+          sed -i '/ocr-hw-ocr-service/{n;s|APP_VERSION:.*|APP_VERSION: ${{ github.sha }}|}' values.yaml
+          sed -i '/ocr-hw-notification-service/{n;s|APP_VERSION:.*|APP_VERSION: ${{ github.sha }}|}' values.yaml
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
           git add values.yaml

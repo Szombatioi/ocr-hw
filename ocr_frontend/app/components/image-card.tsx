@@ -1,5 +1,4 @@
-import { Delete } from "@mui/icons-material";
-import { IconButton, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 
 interface Props {
   name: string;
@@ -11,6 +10,7 @@ interface Props {
 export default function ImageCard({ name, description, imageUrl, onClick }: Props) {
   return (
     <button className="image-card" onClick={onClick}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={imageUrl} alt={name} className="image-card_img" />
       <div className="image-card_body">
         {/* <span className="image-card_name">{name}</span>

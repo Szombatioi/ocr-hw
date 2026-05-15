@@ -15,6 +15,9 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL=http://ocr-hw-backend:3001
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
+ARG NEXT_PUBLIC_WS_URL=http://ocr-hw-ws-gateway:3002
+ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+
 RUN npm run build
 
 # ---- Stage 3: Runner ----

@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
 import { ConfigService } from '@nestjs/config/dist/config.service';
 import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 import { S3StorageModule } from './s3-storage/s3-storage.module';
 import { ImageModule } from './image/image.module';
 import { OcrModule } from './ocr/ocr.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -32,11 +31,7 @@ import { OcrModule } from './ocr/ocr.module';
     S3StorageModule,
     OcrModule,
   ],
-  controllers: [
-    /*AppController*/
-  ],
-  providers: [
-    /*AppService*/
-  ],
+  controllers: [AppController],
+  providers: [],
 })
 export class AppModule {}

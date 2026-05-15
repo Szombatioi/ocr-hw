@@ -11,6 +11,8 @@ import { ImageService } from './image.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
+import { EventPattern } from '@nestjs/microservices/decorators/event-pattern.decorator';
+import { Payload } from '@nestjs/microservices/decorators/payload.decorator';
 
 @Controller('image')
 export class ImageController {
@@ -33,5 +35,12 @@ export class ImageController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     return this.imageService.createImage(file, createImageDto);
+  }
+
+  @EventPattern('image.processed')
+  async handleImageProcessed(
+    @Payload() message: { url: string; ocrResult: Record<string, any> },
+  ) {
+    await this.imageService.updateOcrResult(message.url, message.ocrResult);
   }
 }
