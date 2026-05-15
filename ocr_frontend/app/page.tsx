@@ -1,6 +1,13 @@
 "use client";
 import { io } from "socket.io-client";
-import { Button, CircularProgress, Container, Paper, TextField, Typography } from "@mui/material";
+import {
+  Button,
+  CircularProgress,
+  Container,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ImageUploader from "./components/file-upload";
@@ -9,9 +16,11 @@ import { Image } from "@/types/image";
 import ImageCard from "./components/image-card";
 import ImageDialog from "./components/image-dialog";
 import { useRouter } from "next/navigation";
+import { useSnackbar } from "notistack";
 
 export default function OcrPage() {
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isRunningOcr, setIsRunningOcr] = useState<boolean>(false);
@@ -27,34 +36,49 @@ export default function OcrPage() {
   };
 
   useEffect(() => {
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3002', {
-      transports: ['websocket'],
-    });
+    const socket = io(
+      process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3002",
+      {
+        transports: ["websocket"],
+      }
+    );
 
-    socket.on('image.processed', (img: Image) => {
+    socket.on("image.processed", (img: Image) => {
       // setImages((prev) => {
       //   const exists = prev.some((i) => i.url === img.url);
       //   return exists
       //     ? prev.map((i) => (i.url === img.url ? img : i))
       //     : [img, ...prev];
       // });
-      setImages((prev) => [img, ...prev].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      setImages((prev) =>
+        [img, ...prev].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+      );
       console.log(`New image: ${img}`);
+      enqueueSnackbar(`Image processed: ${img.name}`, { variant: "success" });
       // setSelectedImage((prev) => (prev?.url === img.url ? img : prev));
     });
-
 
     return () => {
       socket.disconnect();
     };
   }, []);
 
-
   const [errorText, setErrorText] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get<Image[]>("/image")
-      .then((res) => setImages(res.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())))
+    api
+      .get<Image[]>("/image")
+      .then((res) =>
+        setImages(
+          res.data.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+        )
+      )
       .catch((err) => setErrorText("Error connecting to the backend: " + err));
   }, []);
 
@@ -69,16 +93,26 @@ export default function OcrPage() {
     formData.append("file", selectedFile);
     formData.append("description", description);
     formData.append("createdAt", createdAt);
-    api.post<string>("/image", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    try {
+      api.post<string>("/image", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      enqueueSnackbar(`Image sent to processing: ${selectedFile.name}`, {
+        variant: "info",
+      });
+    } catch (err) {
+      setIsLoading(false);
+      enqueueSnackbar(`Error uploading image: ${err}`, { variant: "error" });
+      return;
+    } finally {
+      _setSelectedFile(null);
+      setIsLoading(false);
+    }
 
     //Add the image to the list + open dialog
     // const newImage: Image = { url: response.data, name: selectedFile.name, description, createdAt, ocrResult: null };
     // setImages((prev) => [newImage, ...prev]);
     // setSelectedImage(newImage);
-    _setSelectedFile(null);
-    setIsLoading(false);
 
     // Run OCR
     // setIsRunningOcr(true);
@@ -111,7 +145,9 @@ export default function OcrPage() {
     return (
       <>
         <Container sx={{ display: "flex", justifyContent: "center" }}>
-          <Typography variant="h6" color="error">{errorText}</Typography>
+          <Typography variant="h6" color="error">
+            {errorText}
+          </Typography>
         </Container>
       </>
     );
@@ -120,16 +156,34 @@ export default function OcrPage() {
   return (
     <>
       <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Button sx={{position: "absolute", top: 16, right: 16}} variant="outlined" onClick={() => router.push("/subscribe")}>
+        <Button
+          sx={{ position: "absolute", top: 16, right: 16 }}
+          variant="outlined"
+          onClick={() => router.push("/subscribe")}
+        >
           Get notifications
         </Button>
-        <Paper elevation={1} sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Container sx={{ display: "flex", flexDirection: "column", gap: 2, justifyContent: "center", alignItems: "center" }}>
+        <Paper
+          elevation={1}
+          sx={{ p: 4, display: "flex", flexDirection: "column", gap: 2 }}
+        >
+          <Container
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
             {isLoading ? (
               <CircularProgress />
             ) : (
               <>
-                <ImageUploader file={selectedFile} onFileChange={_setSelectedFile} />
+                <ImageUploader
+                  file={selectedFile}
+                  onFileChange={_setSelectedFile}
+                />
                 {selectedFile && (
                   <>
                     <TextField
@@ -141,7 +195,11 @@ export default function OcrPage() {
                       multiline
                       rows={2}
                     />
-                    <Button variant="contained" color="primary" onClick={processImage}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={processImage}
+                    >
                       Process Image
                     </Button>
                   </>
@@ -151,12 +209,16 @@ export default function OcrPage() {
           </Container>
         </Paper>
 
-        <Paper sx={{ mt: 4, p: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Paper
+          sx={{ mt: 4, p: 4, display: "flex", flexDirection: "column", gap: 2 }}
+        >
           <Typography variant="h6" align="center">
             Previously uploaded images
           </Typography>
           {images.length === 0 ? (
-            <Typography align="center" variant="body2" color="text.secondary">No images uploaded yet.</Typography>
+            <Typography align="center" variant="body2" color="text.secondary">
+              No images uploaded yet.
+            </Typography>
           ) : (
             images.map((image, index) => {
               const isNew = !rendered.includes(image.url);
@@ -172,9 +234,12 @@ export default function OcrPage() {
                     }
                   }}
                 >
-                  <ImageCard name={image.name}
-                    description={image.description} imageUrl={image.url}
-                    onClick={() => setSelectedImage(image)} />
+                  <ImageCard
+                    name={image.name}
+                    description={image.description}
+                    imageUrl={image.url}
+                    onClick={() => setSelectedImage(image)}
+                  />
                 </motion.div>
               );
             })
