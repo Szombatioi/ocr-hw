@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const notificationApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_NOTIFICATION_URL ?? "http://localhost:3003",
+  baseURL: "/notify",// baseURL: process.env.NEXT_PUBLIC_NOTIFICATION_URL ?? "http://localhost:3003",
   headers: { "Content-Type": "application/json" },
 });
 
