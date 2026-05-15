@@ -129,7 +129,7 @@ export default function OcrPage() {
               <CircularProgress />
             ) : (
               <>
-                <ImageUploader onFileChange={_setSelectedFile} />
+                <ImageUploader file={selectedFile} onFileChange={_setSelectedFile} />
                 {selectedFile && (
                   <>
                     <TextField

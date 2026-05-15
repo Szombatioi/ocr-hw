@@ -1,17 +1,18 @@
 "use client";
 
 import { AttachFile, Clear, Upload } from "@mui/icons-material";
-import { useRef, useState, DragEvent, ChangeEvent } from "react";
+import { useRef, useState, DragEvent, ChangeEvent, useEffect } from "react";
 
 interface ImageUploaderProps {
+  file: File | null;
   onFileChange?: (file: File | null) => void;
 }
 
 const MAX_SIZE_MB = 1;
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
-export default function ImageUploader({ onFileChange }: ImageUploaderProps) {
-  const [file, setFile] = useState<File | null>(null);
+export default function ImageUploader({ file, onFileChange }: ImageUploaderProps) {
+  // const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -22,21 +23,25 @@ export default function ImageUploader({ onFileChange }: ImageUploaderProps) {
     return null;
   }
 
+  useEffect(() => {
+    if (!file && inputRef.current) inputRef.current.value = "";
+  }, [file]);
+
   function handleSelect(f: File) {
     const err = validate(f);
     if (err) {
       setError(err);
-      setFile(null);
+      // setFile(null);
       onFileChange?.(null);
       return;
     }
     setError(null);
-    setFile(f);
+    // setFile(f);
     onFileChange?.(f);
   }
 
   function handleClear() {
-    setFile(null);
+    // setFile(null);
     setError(null);
     onFileChange?.(null);
     if (inputRef.current) inputRef.current.value = "";
