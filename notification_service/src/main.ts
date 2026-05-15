@@ -17,11 +17,12 @@ async function bootstrap() {
     },
   });
 
-  app.enableCors(
-    [process.env.ENABLED_CORS_ORIGINS?.split(',') || 'http://localhost:3000']
-  );
+  app.enableCors([
+    process.env.ENABLED_CORS_ORIGINS?.split(',') || 'http://localhost:3000',
+  ]);
 
   await app.startAllMicroservices();
   await app.listen(process.env.PORT || 3003);
 }
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 bootstrap();

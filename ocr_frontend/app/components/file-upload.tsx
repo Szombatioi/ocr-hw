@@ -1,130 +1,128 @@
-// components/ImageUploader.tsx
 "use client";
 
 import { AttachFile, Clear, Upload } from "@mui/icons-material";
 import { useRef, useState, DragEvent, ChangeEvent } from "react";
 
 interface ImageUploaderProps {
-    onFileChange?: (file: File | null) => void;
+  onFileChange?: (file: File | null) => void;
 }
 
 const MAX_SIZE_MB = 1;
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
 export default function ImageUploader({ onFileChange }: ImageUploaderProps) {
-    const [file, setFile] = useState<File | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-    function validate(f: File): string | null {
-        if (!f.type.startsWith("image/")) return "Only images can be uploaded.";
-        if (f.size > MAX_SIZE_BYTES) return `File size exceeds ${MAX_SIZE_MB} MB.`;
-        return null;
+  function validate(f: File): string | null {
+    if (!f.type.startsWith("image/")) return "Only images can be uploaded.";
+    if (f.size > MAX_SIZE_BYTES) return `File size exceeds ${MAX_SIZE_MB} MB.`;
+    return null;
+  }
+
+  function handleSelect(f: File) {
+    const err = validate(f);
+    if (err) {
+      setError(err);
+      setFile(null);
+      onFileChange?.(null);
+      return;
     }
+    setError(null);
+    setFile(f);
+    onFileChange?.(f);
+  }
 
-    function handleSelect(f: File) {
-        const err = validate(f);
-        if (err) {
-            setError(err);
-            setFile(null);
-            onFileChange?.(null);
-            return;
-        }
-        setError(null);
-        setFile(f);
-        onFileChange?.(f);
-    }
+  function handleClear() {
+    setFile(null);
+    setError(null);
+    onFileChange?.(null);
+    if (inputRef.current) inputRef.current.value = "";
+  }
 
-    function handleClear() {
-        setFile(null);
-        setError(null);
-        onFileChange?.(null);
-        if (inputRef.current) inputRef.current.value = "";
-    }
+  function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (f) handleSelect(f);
+  }
 
-    function handleInputChange(e: ChangeEvent<HTMLInputElement>) {
-        const f = e.target.files?.[0];
-        if (f) handleSelect(f);
-    }
+  function handleDragOver(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setIsDragging(true);
+  }
 
-    function handleDragOver(e: DragEvent<HTMLDivElement>) {
-        e.preventDefault();
-        setIsDragging(true);
-    }
+  function handleDragLeave() {
+    setIsDragging(false);
+  }
 
-    function handleDragLeave() {
-        setIsDragging(false);
-    }
+  function handleDrop(e: DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setIsDragging(false);
+    const f = e.dataTransfer.files?.[0];
+    if (f) handleSelect(f);
+  }
 
-    function handleDrop(e: DragEvent<HTMLDivElement>) {
-        e.preventDefault();
-        setIsDragging(false);
-        const f = e.dataTransfer.files?.[0];
-        if (f) handleSelect(f);
-    }
+  const sizeMB = file ? (file.size / 1024 / 1024).toFixed(2) : null;
 
-    const sizeMB = file ? (file.size / 1024 / 1024).toFixed(2) : null;
+  return (
+    <div className="uploader">
+      {!file && (
+        <div
+          className={`drop-zone ${isDragging ? "dragging" : ""}`}
+          onClick={() => inputRef.current?.click()}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
+          aria-label="Kép feltöltése"
+        >
+          <Upload />
+          <p className="drop-zone__primary">Drag your image</p>
+          <p className="drop-zone__secondary">
+            vagy <span className="drop-zone__link">browse</span>
+          </p>
+          <p className="drop-zone__hint">JPG, PNG, WEBP — max {MAX_SIZE_MB} MB</p>
+        </div>
+      )}
 
-    return (
-        <div className="uploader">
-            {!file && (
-                <div
-                    className={`drop-zone ${isDragging ? "dragging" : ""}`}
-                    onClick={() => inputRef.current?.click()}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
-                    aria-label="Kép feltöltése"
-                >
-                    <Upload />
-                    <p className="drop-zone__primary">Drag your image</p>
-                    <p className="drop-zone__secondary">
-                        vagy <span className="drop-zone__link">browse</span>
-                    </p>
-                    <p className="drop-zone__hint">JPG, PNG, WEBP — max {MAX_SIZE_MB} MB</p>
-                </div>
-            )}
+      {file && (
+        <div className="file-row">
+          <AttachFile />
+          <div className="file-row__info">
+            <span className="file-row__name">{file.name}</span>
+            <span className="file-row__size">{sizeMB} MB</span>
+          </div>
+          <button
+            className="file-row__clear"
+            onClick={handleClear}
+            aria-label="Fájl törlése"
+            type="button"
+          >
+            <Clear />
+          </button>
+        </div>
+      )}
 
-            {file && (
-                <div className="file-row">
-                    <AttachFile />
-                    <div className="file-row__info">
-                        <span className="file-row__name">{file.name}</span>
-                        <span className="file-row__size">{sizeMB} MB</span>
-                    </div>
-                    <button
-                        className="file-row__clear"
-                        onClick={handleClear}
-                        aria-label="Fájl törlése"
-                        type="button"
-                    >
-                        <Clear />
-                    </button>
-                </div>
-            )}
+      {error && <p className="uploader__error">{error}</p>}
 
-            {error && <p className="uploader__error">{error}</p>}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={handleInputChange}
+      />
 
-            <input
-                ref={inputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={handleInputChange}
-            />
-
-            <style>{`
+      <style>{`
         .uploader {
           width: 100%;
           max-width: 480px;
           font-family: sans-serif;
         }
 
-        /* --- Drop zone --- */
         .drop-zone {
           border: 2px dashed #cbd5e1;
           border-radius: 10px;
@@ -167,7 +165,6 @@ export default function ImageUploader({ onFileChange }: ImageUploaderProps) {
           color: #94a3b8;
         }
 
-        /* --- Fájl sor --- */
         .file-row {
           display: flex;
           align-items: center;
@@ -218,13 +215,12 @@ export default function ImageUploader({ onFileChange }: ImageUploaderProps) {
           background: #fef2f2;
         }
 
-        /* --- Hiba --- */
         .uploader__error {
           margin-top: 0.5rem;
           font-size: 0.82rem;
           color: #ef4444;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

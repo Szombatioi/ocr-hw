@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
 import { ConfigService } from '@nestjs/config/dist/config.service';
 import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
@@ -34,8 +32,6 @@ import { AppController } from './app.controller';
     OcrModule,
   ],
   controllers: [AppController],
-  providers: [
-    /*AppService*/
-  ],
+  providers: [],
 })
 export class AppModule {}

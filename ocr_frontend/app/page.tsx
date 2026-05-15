@@ -1,40 +1,25 @@
 "use client";
 import { io } from "socket.io-client";
-// import { io } from 'socket.io-client';
-
-// const socket = io('http://localhost:3002', { transports: ['websocket'] });
-
-// socket.on('image.processed', (data) => {
-//   console.log('OCR kész:', data);
-// });
-
 import { Button, CircularProgress, Container, Paper, TextField, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ImageUploader from "./components/file-upload";
 import api from "./axios";
 import { Image } from "@/types/image";
-import { runOcr } from "@/app/lib/ocr-api";
 import ImageCard from "./components/image-card";
 import ImageDialog from "./components/image-dialog";
-import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
 import { useRouter } from "next/navigation";
 
 export default function OcrPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isRunningOcr, setIsRunningOcr] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [description, setDescription] = useState<string>("");
   const [images, setImages] = useState<Image[]>([]);
   const [selectedImage, setSelectedImage] = useState<Image | null>(null);
   const [rendered, setRendered] = useState<string[]>([]);
-
-  // const socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3002', {
-  //   transports: ['websocket'],
-  // });
-
-  // socket.on('image.processed', (data) => console.log(data)); //TODO: add image to list if not present yet
 
   const _setSelectedFile = (file: File | null) => {
     setSelectedFile(file);
@@ -84,12 +69,12 @@ export default function OcrPage() {
     formData.append("file", selectedFile);
     formData.append("description", description);
     formData.append("createdAt", createdAt);
-    const response = await api.post<string>("/image", formData, {
+    api.post<string>("/image", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
     //Add the image to the list + open dialog
-    const newImage: Image = { url: response.data, name: selectedFile.name, description, createdAt, ocrResult: null };
+    // const newImage: Image = { url: response.data, name: selectedFile.name, description, createdAt, ocrResult: null };
     // setImages((prev) => [newImage, ...prev]);
     // setSelectedImage(newImage);
     _setSelectedFile(null);

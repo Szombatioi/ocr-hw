@@ -19,13 +19,6 @@ export class S3StorageService {
     });
   }
 
-  // async onModuleInit() {
-  //   const exists = await this.minioClient.bucketExists(this.bucket).catch(() => false);
-  //   if (!exists) {
-  //     await this.minioClient.makeBucket(this.bucket);
-  //   }
-  // }
-
   async uploadObject(file: Express.Multer.File) {
     const objectName = `${Date.now()}-${path.basename(file.originalname)}`; //Creating unique object name
 

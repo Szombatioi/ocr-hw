@@ -12,9 +12,10 @@ export class ImageService {
   private readonly logger = new Logger(ImageService.name);
   constructor(
     @Inject() private readonly s3StorageService: S3StorageService,
-    @InjectRepository(ImageEntity) private readonly imageRepository: Repository<ImageEntity>,
+    @InjectRepository(ImageEntity)
+    private readonly imageRepository: Repository<ImageEntity>,
     @Inject('KAFKA_PRODUCER') private readonly kafka: ClientKafka,
-  ) { }
+  ) {}
 
   async findAll(): Promise<ImageEntity[]> {
     return this.imageRepository.find();
@@ -54,14 +55,17 @@ export class ImageService {
 
     //We send an ImageEntity type to the Kafka topic
     this.kafka.emit('image.uploaded', saved);
-    this.logger.log("Kafka message emitted for image upload: " + saved.url);
+    this.logger.log('Kafka message emitted for image upload: ' + saved.url);
 
     //Return the URL - the OCR coordinates are not stored for now,
     //the client side will call the service
     return result.url;
   }
 
-  private async notifyWsGateway(event: string, payload: ImageEntity): Promise<void> {
+  private async notifyWsGateway(
+    event: string,
+    payload: ImageEntity,
+  ): Promise<void> {
     const wsGatewayUrl = process.env.WS_GATEWAY_URL || 'http://localhost:3002';
     try {
       await axios.post(wsGatewayUrl, {
@@ -69,7 +73,8 @@ export class ImageService {
         payload,
       });
     } catch (err: any) {
-      console.error(`WebSocket Gateway error: ${err.message}`);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      this.logger.error(`WebSocket Gateway error: ${err.message}`);
     }
   }
 }

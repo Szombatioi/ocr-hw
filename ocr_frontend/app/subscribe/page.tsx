@@ -28,6 +28,7 @@ export default function SubscribePage() {
     try {
       await subscribe(email);
       setSuccessText(`Subscribed: ${email}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setErrorText(err?.response?.data?.message ?? err.message);
     } finally {
@@ -43,6 +44,7 @@ export default function SubscribePage() {
     try {
       await unsubscribe(email);
       setSuccessText(`Unsubscribed: ${email}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setErrorText(err?.response?.data?.message ?? err.message);
     } finally {

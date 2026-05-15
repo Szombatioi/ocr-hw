@@ -1,4 +1,4 @@
-import 'dotenv/config'; 
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Transport } from '@nestjs/microservices/enums/transport.enum';
@@ -8,11 +8,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors(
-    [process.env.ENABLED_ORIGINS?.split(',') || 'http://localhost:3000']
+    process.env.ENABLED_ORIGINS?.split(',') || 'http://localhost:3000',
   );
-  // console.log(
-  //   `CORS enabled for origins: ${process.env.ENABLED_ORIGINS || 'http://localhost:3000'}`,
-  // );
 
   //Configure Kafka microservice: makes the project a hybrid app
   app.connectMicroservice<MicroserviceOptions>({
@@ -29,4 +26,5 @@ async function bootstrap() {
   await app.startAllMicroservices(); // Start Kafka
   await app.listen(process.env.PORT ?? 3001); //Start REST API
 }
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 bootstrap();

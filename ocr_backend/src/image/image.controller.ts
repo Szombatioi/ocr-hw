@@ -16,7 +16,7 @@ import { Payload } from '@nestjs/microservices/decorators/payload.decorator';
 
 @Controller('image')
 export class ImageController {
-  constructor(private readonly imageService: ImageService) { }
+  constructor(private readonly imageService: ImageService) {}
 
   @Get()
   findAll() {

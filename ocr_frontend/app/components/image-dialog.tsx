@@ -109,6 +109,7 @@ export default function ImageDialog({ image, isRunningOcr, onClose }: Props) {
           </Alert>
         )}
         <div style={{ position: "relative", display: "inline-block", width: "100%" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             ref={imgRef}
             src={image?.url}

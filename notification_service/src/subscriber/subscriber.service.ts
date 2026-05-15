@@ -12,7 +12,7 @@ export class SubscriberService {
   constructor(
     @InjectRepository(SubscriberEntity)
     private readonly subscriberRepository: Repository<SubscriberEntity>,
-  ) { }
+  ) {}
 
   private transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -21,7 +21,7 @@ export class SubscriberService {
       pass: process.env.GMAIL_APP_PASSWORD,
     },
     tls: {
-      rejectUnauthorized: false,  
+      rejectUnauthorized: false,
     },
   });
 
@@ -45,7 +45,11 @@ export class SubscriberService {
       <p>Created at: ${image.createdAt.toLocaleString()}</p>
       <p>OCR Result: ${this.extractOcrText(image.ocrResult)}</p>
     `;
-    await this.sendMail(subscribers.map((s) => s.email), subject, html);
+    await this.sendMail(
+      subscribers.map((s) => s.email),
+      subject,
+      html,
+    );
   }
 
   async findAll(): Promise<SubscriberEntity[]> {
@@ -82,24 +86,27 @@ export class SubscriberService {
     const html = `
     <h1>Welcome! Here are all the images uploaded so far:</h1>
     <ul>
-      ${images.map(img => `
+      ${images
+        .map(
+          (img) => `
         <li>
           Name: <strong>${img.name}</strong><br/>
           Description: ${img.description}<br/>
           OCR: ${this.extractOcrText(img.ocrResult)}
         </li>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </ul>
   `;
     await this.sendMail(email, 'Subscribed to OCR Updates', html);
-    console.log(`Backfill email sent to ${email} with ${images.length} images`)
+    console.log(`Backfill email sent to ${email} with ${images.length} images`);
   }
 
   private extractOcrText(ocrResult: OcrResult | null): string {
     if (!ocrResult?.ParsedResults?.length) return '-';
 
-    return ocrResult.ParsedResults
-      .map((r) => r.ParsedText?.trim() ?? '')
+    return ocrResult.ParsedResults.map((r) => r.ParsedText?.trim() ?? '')
       .filter((t) => t.length > 0)
       .join('\n');
   }

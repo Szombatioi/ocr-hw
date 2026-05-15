@@ -28,4 +28,4 @@ import { ClientsModule } from '@nestjs/microservices/module/clients.module';
   controllers: [ImageController],
   providers: [ImageService],
 })
-export class ImageModule { }
+export class ImageModule {}

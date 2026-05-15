@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
-import { AppService } from './app.service';
 import { Payload } from '@nestjs/microservices/decorators/payload.decorator';
 import { EventPattern } from '@nestjs/microservices';
 import { SubscriberService } from './subscriber/subscriber.service';
@@ -7,7 +6,7 @@ import type { ImageType } from './types/image';
 
 @Controller()
 export class AppController {
-  constructor(private readonly subscriberService: SubscriberService) { }
+  constructor(private readonly subscriberService: SubscriberService) {}
 
   @Get('health')
   health() {
@@ -16,6 +15,7 @@ export class AppController {
 
   @EventPattern('image.processed')
   handleImageProcessed(@Payload() message: ImageType) {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.subscriberService.notifySubscribers(message);
   }
 
