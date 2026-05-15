@@ -1,35 +1,35 @@
 frontend:
   image:
     repository: oszombati/ocr-hw-frontend
-    APP_VERSION: f8b48b302474e533106484c5b94ebbbb003906da
+    APP_VERSION: df3f94d3a2a1b0c9bf5b0a632888a6bafc8534e9
   port: 3000
   replicas: 1
 
 backend:
   image:
     repository: oszombati/ocr-hw-backend
-    APP_VERSION: f8b48b302474e533106484c5b94ebbbb003906da
+    APP_VERSION: df3f94d3a2a1b0c9bf5b0a632888a6bafc8534e9
   port: 3001
   replicas: 1
 
 wsGateway:
   image:
     repository: oszombati/ocr-hw-ws-gateway
-    APP_VERSION: f8b48b302474e533106484c5b94ebbbb003906da
+    APP_VERSION: df3f94d3a2a1b0c9bf5b0a632888a6bafc8534e9
   port: 3002
   replicas: 1
 
 notificationService:
   image:
     repository: oszombati/ocr-hw-notification-service
-    APP_VERSION: f8b48b302474e533106484c5b94ebbbb003906da
+    APP_VERSION: df3f94d3a2a1b0c9bf5b0a632888a6bafc8534e9
   port: 3003
   replicas: 1
 
 ocrService:
   image:
     repository: oszombati/ocr-hw-ocr-service
-    APP_VERSION: f8b48b302474e533106484c5b94ebbbb003906da
+    APP_VERSION: df3f94d3a2a1b0c9bf5b0a632888a6bafc8534e9
   port: 3004
   replicas: 1
 
